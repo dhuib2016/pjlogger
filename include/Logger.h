@@ -4,6 +4,9 @@
 #include <exception.h>
 #include <sstream>
 #include <string>
+#include <filesystem>
+#include <atomic>
+#include <thread>
 
 
 // 0：DEBUG
@@ -14,6 +17,26 @@
 
 
 namespace pj {
+
+typedef enum {
+    ROOT_CONFIG    = 1             //主进程log初始化调用
+   ,THREAD_CONFIG  = 2             //多线程log初始化调用
+   ,BRANCH_CONFIG  = 3             //分支log初始化调用
+}en_config_type;
+
+enum class ConfigType {
+    ROOT = 1,
+    THREAD = 2,
+    BRANCH = 3
+};
+
+enum ConfigResult {
+    LOG_SUCCESS = 0,
+    LOG_CONFIG_UNEXIST = 1,
+    LOG_PATH_UNEXIST = 2,
+    LOG_ALREADY_CONFIGURED = 3,
+    LOG_OTHER_ERROR = 4
+};
 
 class Logger {
 public:
@@ -69,6 +92,10 @@ public:
     // 支持 std::endl
     Logger& operator<<(std::ostream& (*pf)(std::ostream&));
 
+    static int doConfigure(const std::string& logName,
+                           const std::string& configFile,
+                           const std::string& logDir,
+                           ConfigType type = ConfigType::ROOT);
     static void configure(const std::string& configFile);
     static void shutdown();
 

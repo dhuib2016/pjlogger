@@ -18,10 +18,12 @@ OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(LIB_DIR)/%.o, $(SRCS))
 # 测试程序
 TEST_BENCH = $(TEST_DIR)/benchtest
 TEST_THREAD = $(TEST_DIR)/threadtest
-
+TEST_ROOT = $(TEST_DIR)/rootconfig
+TEST_BRANCH = $(TEST_DIR)/branchconfig
+TEST_THREADCONFIG = $(TEST_DIR)/threadconfig
 
 # 默认目标
-all: $(LIB_DIR) $(LIB_DIR)/$(LIB_NAME) $(TEST_BENCH) $(TEST_THREAD)
+all: $(LIB_DIR) $(LIB_DIR)/$(LIB_NAME) $(TEST_BENCH) $(TEST_THREAD) $(TEST_ROOT) $(TEST_BRANCH) $(TEST_THREADCONFIG)
 
 # 创建 build 目录
 $(LIB_DIR):
@@ -47,9 +49,18 @@ $(TEST_BENCH): $(TEST_DIR)/benchtest.cpp $(LIB_DIR)/$(LIB_NAME)
 $(TEST_THREAD): $(TEST_DIR)/threadtest.cpp $(LIB_DIR)/$(LIB_NAME)
 	$(CXX) $(CXXFLAGS) $< -L$(LIB_DIR) -lpjlog $(LDFLAGS) -o $@
 
+$(TEST_ROOT): $(TEST_DIR)/rootconfig.cpp $(LIB_DIR)/$(LIB_NAME)
+	$(CXX) $(CXXFLAGS) $< -L$(LIB_DIR) -lpjlog $(LDFLAGS) -o $@
+
+$(TEST_BRANCH): $(TEST_DIR)/branchconfig.cpp $(LIB_DIR)/$(LIB_NAME)
+	$(CXX) $(CXXFLAGS) $< -L$(LIB_DIR) -lpjlog $(LDFLAGS) -o $@
+
+$(TEST_THREADCONFIG): $(TEST_DIR)/threadconfig.cpp $(LIB_DIR)/$(LIB_NAME)
+	$(CXX) $(CXXFLAGS) $< -L$(LIB_DIR) -lpjlog $(LDFLAGS) -o $@
+
 # 清理目标文件和二进制文件
 clean:
-	rm -rf $(LIB_DIR) $(TEST_BENCH) $(TEST_THREAD)
+	rm -rf $(LIB_DIR) $(TEST_BENCH) $(TEST_THREAD) $(TEST_ROOT) $(TEST_BRANCH) $(TEST_THREADCONFIG)
 
 # PHONY 目标
 .PHONY: all clean

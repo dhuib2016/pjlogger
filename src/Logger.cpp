@@ -19,6 +19,8 @@
 
 namespace pj {
 
+static std::atomic<bool> g_rootConfigured{false};
+
 // 线程局部变量（关键优化）
 thread_local std::ostringstream Logger::t_buffer;
 thread_local int Logger::t_level = 0;
@@ -207,6 +209,83 @@ void Logger::configure(const std::string& configFile) {
         Logger log("Logger");
         log.debug() << "config: " << f.what() << std::endl;
         */
+    }
+}
+
+int Logger::doConfigure(const std::string& logName,
+                        const std::string& configFile,
+                        const std::string& logDir,
+                        ConfigType type)
+{
+    try {
+        // 1?? 检查配置文件
+        if (!std::filesystem::exists(configFile)) {
+            return LOG_CONFIG_UNEXIST;
+        }
+
+        // 2?? 创建日志目录
+        if (!std::filesystem::exists(logDir)) {
+            std::filesystem::create_directories(logDir);
+        }
+
+        // 3?? 设置环境变量
+#ifdef _WIN32
+        _putenv_s("LOG_NAME", logName.c_str());
+        _putenv_s("LOG_DIR", logDir.c_str());
+#else
+        setenv("LOG_NAME", logName.c_str(), 1);
+        setenv("LOG_DIR", logDir.c_str(), 1);
+#endif
+
+        // ==========================
+        // 根据 type 做不同处理
+        // ==========================
+        switch (type)
+        {
+        case ConfigType::ROOT:
+        {
+            bool expected = false;
+            if (!g_rootConfigured.compare_exchange_strong(expected, true)) {
+                return LOG_ALREADY_CONFIGURED;
+            }
+
+            log4cplus::PropertyConfigurator::doConfigure(configFile);
+            break;
+        }
+
+        case ConfigType::THREAD:
+        {
+            // 每线程独立 logger（建议只设置变量）
+            std::string threadName =
+                std::to_string(std::hash<std::thread::id>{}(std::this_thread::get_id()));
+
+#ifdef _WIN32
+            _putenv_s("THREAD_ID", threadName.c_str());
+#else
+            setenv("THREAD_ID", threadName.c_str(), 1);
+#endif
+            break;
+        }
+
+        case ConfigType::BRANCH:
+        {
+            // 分支日志（模块/子系统）
+#ifdef _WIN32
+            _putenv_s("BRANCH_NAME", logName.c_str());
+#else
+            setenv("BRANCH_NAME", logName.c_str(), 1);
+#endif
+            break;
+        }
+
+        default:
+            return LOG_OTHER_ERROR;
+        }
+
+        return LOG_SUCCESS;
+    }
+    catch (...) {
+        return LOG_OTHER_ERROR;
     }
 }
 
