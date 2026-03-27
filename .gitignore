@@ -1,0 +1,15 @@
+# Build artifacts
+lib/
+
+# Test binaries
+test/benchtest
+test/branchconfig
+test/rootconfig
+test/threadconfig
+test/threadtest
+
+# Test output
+test/logs/
+
+# Claude Code
+.claude/
