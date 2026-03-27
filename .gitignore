@@ -7,6 +7,14 @@ test/branchconfig
 test/rootconfig
 test/threadconfig
 test/threadtest
+test/test_levels
+test/test_appenders
+test/test_ndc
+test/test_logger_api
+
+# Log files
+*.log
+*.log.[0-9]*
 
 # Test output
 test/logs/
