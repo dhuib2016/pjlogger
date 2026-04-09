@@ -1,8 +1,8 @@
 // 
-// Copyright (c) 2025ï¿½ï¿½ DongHui
+// Copyright (c) 2025, DongHui
 // All rights reserved.
-// versionï¿½ï¿½ 1.1
-// dateï¿½ï¿½ 2025-01-04
+// version: 1.1
+// date: 2025-01-04
 // 
 
 
@@ -52,7 +52,7 @@ static LogLevel fromLog4cplusLevel(log4cplus::LogLevel ll) {
 static std::atomic<bool> g_rootConfigured{false};
 static std::mutex s_configureMutex;
 
-// ï¿½ß³Ì¾Ö²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½Å»ï¿½ï¿½ï¿½
+// Ïß³Ì¾Ö²¿±äÁ¿£¨¹Ø¼üÓÅ»¯£©
 thread_local std::ostringstream Logger::t_buffer;
 thread_local int Logger::t_level = 0;
 
@@ -253,7 +253,7 @@ void Logger::logInternal(int level, const char* fmt, va_list args) {
     }
 
     if (static_cast<size_t>(needed) < sizeof(stackBuf)) {
-        // Fits in stack buffer â€” common fast path
+        // Fits in stack buffer â€? common fast path
         va_end(argsCopy);
         logInternal(level, std::string(stackBuf));
         return;
@@ -309,17 +309,17 @@ int Logger::doConfigure(const std::string& logName,
                         ConfigType type)
 {
     try {
-        // 1?? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
+        // 1 ¼ì²éÅäÖÃÎÄ¼þ
         if (!std::filesystem::exists(configFile)) {
             return LOG_CONFIG_UNEXIST;
         }
 
-        // 2?? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾Ä¿Â¼
+        // 2 ´´½¨ÈÕÖ¾Ä¿Â¼
         if (!std::filesystem::exists(logDir)) {
             std::filesystem::create_directories(logDir);
         }
 
-        // 3?? ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        // 3 ÉèÖÃ»·¾³±äÁ¿
 #ifdef _WIN32
         _putenv_s("LOG_NAME", logName.c_str());
         _putenv_s("LOG_DIR", logDir.c_str());
@@ -329,7 +329,7 @@ int Logger::doConfigure(const std::string& logName,
 #endif
 
         // ==========================
-        // ï¿½ï¿½ï¿½ï¿½ type ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½
+        // ¸ù¾Ý type ×ö²»Í¬´¦Àí
         // ==========================
         switch (type)
         {
