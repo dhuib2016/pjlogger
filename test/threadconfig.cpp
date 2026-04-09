@@ -4,7 +4,7 @@
 using namespace pj;
 
 void netThread() {
-    Logger::doConfigure("net", "", "", ConfigType::BRANCH);
+    Logger::doConfigure("net", "", "", ConfigType::THREAD);
     Logger log("net");
 
     log.info() << "net thread running" << std::endl;
