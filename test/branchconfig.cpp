@@ -4,21 +4,23 @@
 using namespace pj;
 
 int main() {
+    int ret = Logger::doConfigure( "rootlog", "log4cplus_1.properties", "./logs", ConfigType::ROOT);
+
     // 1. ROOT config
-    int ret = Logger::doConfigure(
+    ret = Logger::doConfigure(
         "mainlog",
-        "log4cplus_1.properties",
+        "log4cplus_3.properties",
         "./logs",
-        ConfigType::ROOT
+        ConfigType::BRANCH
     );
 
     if (ret != LOG_SUCCESS) {
-        std::cout << "ROOT doConfigure failed: " << ret << std::endl;
+        std::cout << "mainlog doConfigure failed: " << ret << std::endl;
         return -1;
     }
 
-    Logger rootLog("main");
-    rootLog.info() << "ROOT logger initialized" << std::endl;
+    Logger myLog("mainlog");
+    myLog.info() << "main logger initialized" << std::endl;
 
     // 2. BRANCH config
     ret = Logger::doConfigure(
@@ -33,12 +35,15 @@ int main() {
         return -1;
     }
 
+    Logger othLog("ooplog");
+    othLog.debug() << "other log for test " << std::endl;
+
     Logger branchLog("branch");
     branchLog.info() << "BRANCH logger initialized" << std::endl;
     branchLog.debug("branch debug value=%d", 200);
 
     // 3. Log from root again to verify it still works
-    rootLog.info() << "ROOT logger still working after BRANCH config" << std::endl;
+    myLog.info() << "main logger still working after BRANCH config" << std::endl;
 
     return 0;
 }
