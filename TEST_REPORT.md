@@ -214,7 +214,25 @@ TPS: 9,704
 |------|---------|
 | `test/log4cplus.properties` | RollingFileAppender to `logfile.log` (10MB, 3 backups). Pattern: `%D %-5p %c{2} - %m%n` |
 | `test/log4cplus_1.properties` | RollingFileAppender using `${LOG_DIR}/${LOG_NAME}.log` (env-variable paths). Pattern includes thread ID and NDC: `%D [%t] [%x] %-5p %c - %m%n` |
-| `test/log4cplus_2.properties` | RollingFileAppender using `${LOG_DIR}/%c.log` (category-based file naming). Same pattern as `_1`. |
+| `test/log4cplus_2.properties` | RollingFileAppender using `${LOG_DIR}/${BRANCH_NAME}.log` (branch-name-based file naming). Same pattern as `_1`. |
+
+## Bug Fixes
+
+### `%c` in File path does not expand to logger name (2026-04-10)
+
+**Reported:** `log4cplus.appender.FILE.File=${LOG_DIR}/%c.log` — the `%c` token was not being substituted.
+
+**Root cause:** `%c` is a PatternLayout conversion specifier (logger category name) that is only valid inside `ConversionPattern=`. log4cplus does **not** evaluate pattern tokens in the `File=` property. The result was a literal file named `%c.log`.
+
+**Fix:** Changed `%c` to `${BRANCH_NAME}` in `test/log4cplus_2.properties`. The `doConfigure(ConfigType::BRANCH)` code path already calls `setenv("BRANCH_NAME", logName.c_str(), 1)` before delegating to log4cplus, so `${BRANCH_NAME}` expands correctly.
+
+**Additional note:** `Logger::configure()` does not inject any environment variables before calling log4cplus. If a properties file uses `${LOG_DIR}` or other `${VAR}` tokens, callers must either set them manually or use `doConfigure()` instead. A warning comment was added to the source.
+
+**Files changed:**
+- `test/log4cplus_2.properties` — `%c` → `${BRANCH_NAME}`
+- `src/Logger.cpp` — added warning comment on `configure()`
+
+---
 
 ## API Coverage
 

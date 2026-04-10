@@ -293,6 +293,9 @@ Logger& endl(Logger& log) {
 }
 
 
+// WARNING: configure() does NOT set environment variables (LOG_DIR, LOG_NAME, etc.)
+// before delegating to log4cplus. If the properties file uses ${VAR} substitution,
+// callers must set those env vars themselves, or use doConfigure() instead.
 void Logger::configure(const std::string& configFile) {
     try {
         log4cplus::PropertyConfigurator::doConfigure(configFile);
