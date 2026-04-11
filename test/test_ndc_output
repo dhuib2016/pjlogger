@@ -1,0 +1,5 @@
+2026-04-11 22:44:15 [] INFO  test_ndc_output.log - init ndc output
+2026-04-11 22:44:15 [] DEBUG test_ndc_output.log - msg_no_ndc
+2026-04-11 22:44:15 [request-42] DEBUG test_ndc_output.log - msg_with_ndc
+2026-04-11 22:44:15 [session-99] INFO  test_ndc_output.log - msg_raii_ndc
+2026-04-11 22:44:15 [] INFO  test_ndc_output.log - msg_after_raii

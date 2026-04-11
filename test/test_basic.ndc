@@ -1,0 +1,6 @@
+2026-04-11 22:46:49 [] INFO  test_basic.ndc - NDC empty initially
+2026-04-11 22:46:49 [ctx1] INFO  test_basic.ndc - after push(ctx1), get() == "ctx1"
+2026-04-11 22:46:49 [ctx1 ctx2] INFO  test_basic.ndc - after push(ctx2), get() contains ctx2
+2026-04-11 22:46:49 [ctx1] INFO  test_basic.ndc - pop() returns "ctx2",popped=ctx2
+2026-04-11 22:46:49 [] INFO  test_basic.ndc - after second pop, NDC is empty
+2026-04-11 22:46:49 [] INFO  test_basic.ndc - ndcRemove() called

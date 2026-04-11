@@ -1,0 +1,7 @@
+2026-04-11 22:46:49 [] INFO  test_raii.ndc - [NDCContext RAII guard]
+2026-04-11 22:46:49 [outer] INFO  test_raii.ndc - inside guard1, get() == "outer"
+2026-04-11 22:46:49 [outer inner] INFO  test_raii.ndc - inside guard2, get() contains "inner"
+2026-04-11 22:46:49 [outer] INFO  test_raii.ndc - after guard2 destroyed, "inner" removed
+2026-04-11 22:46:49 [outer] INFO  test_raii.ndc - after guard2 destroyed, "inner" removed
+2026-04-11 22:46:49 [] INFO  test_raii.ndc - after guard1 destroyed, NDC is empty
+2026-04-11 22:46:49 [] INFO  test_raii.ndc - ndcRemove() called
