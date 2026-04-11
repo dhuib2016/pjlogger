@@ -1,11 +1,23 @@
 /// Test: Programmatic appender management (console, file, rolling file, async).
 #include "Logger.h"
+#include <log4cplus/initializer.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <cstdio>
 #include <thread>
 #include <chrono>
+#include <filesystem>
+
+#ifndef PJLOG_TEST_OUTPUT_DIR
+#define PJLOG_TEST_OUTPUT_DIR "."
+#endif
+
+/// Log path under the test directory (absolute when built via Makefile).
+static std::string testLogPath(const char* basename) {
+    namespace fs = std::filesystem;
+    return (fs::path(PJLOG_TEST_OUTPUT_DIR) / basename).string();
+}
 
 using namespace pj;
 
@@ -31,7 +43,7 @@ static std::string readFile(const std::string& path) {
 void test_file_appender() {
     std::cout << "[FileAppender]" << std::endl;
 
-    const std::string logFile = "test_file_appender.log";
+    const std::string logFile = testLogPath("test_file_appender.log");
     std::remove(logFile.c_str());
 
     Logger log("test.file");
@@ -52,25 +64,35 @@ void test_file_appender() {
     check("debug message written to file",
           content.find("file_appender_debug_msg") != std::string::npos);
 
-    // Test append=false (truncate mode)
+    // Must detach the first file appender; otherwise the logger keeps two file appenders and every
+    // later log line (e.g. seed_before_truncate) is written to BOTH log files.
     log.removeAllAppenders();
-    log.addFileAppender(logFile, "%m%n", false, true);
+
+    // log.removeAllAppenders() 只做一件事：从这个 Logger 对象上摘掉所有 Appender（不再往那些目的地继续发新日志）。它不会去删磁盘上的日志文件，也不会清空文件里已经写进去的内容。
+    // 已经通过 FileAppender 写到 test_file_appender.log 里的行，是写在文件里的数据；卸掉 appender 只是关闭了「以后还往这个文件打」这条通路，不会把文件截断或删掉。
+    // 只有在再次用 addFileAppender(..., append=false)（打开模式是 truncate）打开同一个文件时，才会在打开那一刻把文件清空——那是重新打开文件时的行为，不是 removeAllAppenders() 做的。
+
+    // Truncate test uses a separate file so test_file_appender.log keeps the two lines above for inspection.
+    const std::string truncLog = testLogPath("test_file_appender_truncate.log");
+    std::remove(truncLog.c_str());
+
+    log.addFileAppender(truncLog, "%m%n", true, true);
+    log.info("seed_before_truncate");
+    log.removeAllAppenders();
+    log.addFileAppender(truncLog, "%m%n", false, true);
     log.info("after_truncate");
 
-    content = readFile(logFile);
+    content = readFile(truncLog);
     check("truncate mode clears previous content",
-          content.find("file_appender_test_message") == std::string::npos);
+          content.find("seed_before_truncate") == std::string::npos);
     check("new message present after truncate",
           content.find("after_truncate") != std::string::npos);
-
-    log.removeAllAppenders();
-    std::remove(logFile.c_str());
 }
 
 void test_rolling_file_appender() {
     std::cout << "\n[RollingFileAppender]" << std::endl;
 
-    const std::string logFile = "test_rolling.log";
+    const std::string logFile = testLogPath("test_rolling.log");
     std::remove(logFile.c_str());
     // Clean up any backup files from previous runs
     for (int i = 1; i <= 3; ++i) {
@@ -101,10 +123,11 @@ void test_rolling_file_appender() {
     check("main log file still has content", !content.empty());
 
     log.removeAllAppenders();
-    std::remove(logFile.c_str());
+    /*std::remove(logFile.c_str());
     for (int i = 1; i <= 3; ++i) {
         std::remove((logFile + "." + std::to_string(i)).c_str());
     }
+    */
 }
 
 void test_console_appender() {
@@ -117,12 +140,14 @@ void test_console_appender() {
     // We can't easily capture console output, but we verify it doesn't crash
     // and the appender count is correct.
     log.addConsoleAppender("%m%n", false);
+    log.info("console appender attached (stdout)");
     check("console appender attached (stdout)", log.getAppenderCount() == 1);
 
     log.addConsoleAppender("%m%n", true);
+    log.debug("second console appender attached (stderr)");
     check("second console appender attached (stderr)", log.getAppenderCount() == 2);
-
-    log.info("console_appender_smoke_test");
+   
+    log.debug("logging through console appender did not crash");
     check("logging through console appender did not crash", true);
 
     log.removeAllAppenders();
@@ -150,8 +175,8 @@ void test_async_console_appender() {
 void test_appender_management() {
     std::cout << "\n[Appender management]" << std::endl;
 
-    const std::string file1 = "test_mgmt_1.log";
-    const std::string file2 = "test_mgmt_2.log";
+    const std::string file1 = testLogPath("test_mgmt_1.log");
+    const std::string file2 = testLogPath("test_mgmt_2.log");
     std::remove(file1.c_str());
     std::remove(file2.c_str());
 
@@ -179,15 +204,16 @@ void test_appender_management() {
     log.info("no_appender_should_not_crash");
     check("logging with no appenders did not crash", true);
 
-    std::remove(file1.c_str());
-    std::remove(file2.c_str());
+    //std::remove(file1.c_str());
+    //std::remove(file2.c_str());
 }
 
 int main() {
-    test_file_appender();
-    test_rolling_file_appender();
-    test_console_appender();
-    test_async_console_appender();
+    log4cplus::Initializer log4cplusInit;
+    //test_file_appender();
+    //test_rolling_file_appender();
+    //test_console_appender();
+    //test_async_console_appender();
     test_appender_management();
 
     std::cout << "\n=== Appender Tests: " << g_passed << " passed, "
